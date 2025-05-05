@@ -62,6 +62,7 @@
 例えばClaudeに以下のような質問ができます：
 - "コメダとルノアールの自己資本比率を比較して"
 - "UUUMとカバーとANYCOLORの財務表を取得して、バランスシートを図にしてください。"
+![sample](https://github.com/user-attachments/assets/5e480007-228f-4ff9-a834-d79f490b3360)
 
 ## ライセンス
 
