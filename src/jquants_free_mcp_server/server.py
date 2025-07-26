@@ -98,7 +98,7 @@ async def get_daily_quotes(
     ) -> str:
     """
     Retrieve daily stock price data for a specified stock code.
-    The available data spans from 2 years prior to today up until 12 weeks ago.
+    The available data spans from 2 years prior to today up until 12 weeks ago (or up to 5 years for some plans).
 
     Args:
         code (str): Specify the stock code. Example: "72030" (トヨタ自動車)
@@ -133,7 +133,8 @@ async def get_financial_statements(
     ) -> str:
     """
     Retrieve financial statements for a specified stock code.
-    The available data spans from 2 years prior to today up until 12 weeks ago.
+    The available data spans from 2 years prior to today up until 12 weeks ago (or up to 5 years for some plans).
+
     You can obtain quarterly financial summary reports and disclosure information regarding
     revisions to performance and dividend information (mainly numerical data) for listed companies.
 
@@ -152,6 +153,95 @@ async def get_financial_statements(
         for r in response_json_list
     ][start_position:start_position + limit]
     response_json = {'statements': response_json_list}
+    return json.dumps(response_json, ensure_ascii=False)
+
+
+@mcp_server.tool()
+async def get_topix_prices(
+        from_date: str,
+        to_date: str,
+        pagination_key: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve daily TOPIX (Tokyo Stock Price Index) price data.
+
+    Args:
+        from_date (str): Start date in YYYY-MM-DD format. Example: "2023-01-01"
+        to_date (str): End date in YYYY-MM-DD format. Example: "2023-01-31"
+        pagination_key (str, optional): Pagination key for retrieving subsequent data
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing TOPIX OHLC data
+    """
+
+    url = f"https://api.jquants.com/v1/indices/topix?from={from_date}&to={to_date}"
+    if pagination_key:
+        url += f"&pagination_key={pagination_key}"
+
+    response = await make_requests(url)
+    if "error" in response:
+        return json.dumps(response, ensure_ascii=False)
+
+    response_json_list = response.get("topix", [])
+    response_json_list = response_json_list[start_position:start_position + limit]
+    response_json = {'topix': response_json_list}
+    return json.dumps(response_json, ensure_ascii=False)
+
+
+@mcp_server.tool()
+async def get_trades_spec(
+        section: str = "",
+        from_date: str = "",
+        to_date: str = "",
+        pagination_key: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve trading by type of investors (stock trading value) data.
+    This provides investment sector breakdown data showing trading values by different investor types
+    such as individuals, foreigners, institutions, etc.
+
+    You can specify either 'section' or 'from_date/to_date' or both.
+
+    Args:
+        section (str, optional): Section name. Example: "TSEPrime", "TSEStandard", "TSEGrowth"
+        from_date (str, optional): Start date in YYYY-MM-DD format. Example: "2023-01-01"
+        to_date (str, optional): End date in YYYY-MM-DD format. Example: "2023-01-31"
+        pagination_key (str, optional): Pagination key for retrieving subsequent data
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing trading data by investor type including individuals, 
+             foreigners, institutions, etc. with sales/purchase values and balances
+    """
+
+    url = "https://api.jquants.com/v1/markets/trades_spec"
+    params = []
+    if section:
+        params.append(f"section={section}")
+    if from_date:
+        params.append(f"from={from_date}")
+    if to_date:
+        params.append(f"to={to_date}")
+    if pagination_key:
+        params.append(f"pagination_key={pagination_key}")
+
+    if params:
+        url += "?" + "&".join(params)
+
+    response = await make_requests(url)
+    if "error" in response:
+        return json.dumps(response, ensure_ascii=False)
+
+    response_json_list = response.get("trades_spec", [])
+    response_json_list = response_json_list[start_position:start_position + limit]
+    response_json = {'trades_spec': response_json_list}
     return json.dumps(response_json, ensure_ascii=False)
 
 
