@@ -1,0 +1,103 @@
+version: '3'
+
+dotenv: ['.env']
+
+vars:
+  PACKAGE_NAME: jquants_free_mcp_server
+
+tasks:
+  install:
+    desc: Install dependencies
+    cmds:
+      - uv sync --extra dev
+
+  test:
+    desc: Run unit tests
+    deps: [install]
+    cmds:
+      - uv run python -m pytest tests/ -v
+
+  test:quick:
+    desc: Run tests without verbose output
+    deps: [install]
+    cmds:
+      - uv run python -m pytest tests/
+
+  build:
+    desc: Build the package
+    deps: [install]
+    cmds:
+      - uv build
+
+  run:
+    desc: Run the MCP server locally
+    deps: [install]
+    cmds:
+      - uv run python src/{{.PACKAGE_NAME}}/server.py
+
+  run:package:
+    desc: Run the installed package
+    deps: [install]
+    cmds:
+      - uv run {{.PACKAGE_NAME}}
+
+  dev:
+    desc: Run server in development mode with hot reload
+    deps: [install]
+    cmds:
+      - echo "Starting J-Quants MCP server in development mode..."
+      - uv run python src/{{.PACKAGE_NAME}}/server.py
+
+  lint:
+    desc: Run code formatting and linting (if tools are available)
+    deps: [install]
+    cmds:
+      - cmd: uv run ruff check src/ tests/
+        ignore_error: true
+      - cmd: uv run ruff format src/ tests/
+        ignore_error: true
+
+  check:
+    desc: Run all checks (tests + linting)
+    deps: [test, lint]
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf dist/
+      - rm -rf build/
+      - rm -rf *.egg-info/
+      - find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      - find . -name "*.pyc" -delete 2>/dev/null || true
+
+  setup:env:
+    desc: Setup environment and install dependencies
+    cmds:
+      - echo "Setting up development environment..."
+      - task: install
+      - echo "✅ Environment setup complete!"
+      - echo "💡 Don't forget to set JQUANTS_ID_TOKEN in your .env file"
+
+  help:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  # CI/CD tasks
+  ci:test:
+    desc: Run tests for CI (without .env dependency)
+    deps: [install]
+    cmds:
+      - uv run python -m pytest tests/ -v
+    env:
+      JQUANTS_ID_TOKEN: "{{.JQUANTS_ID_TOKEN}}"
+
+  release:
+    desc: Build and prepare for release
+    deps: [clean, check, build]
+    cmds:
+      - echo "✅ Release build complete!"
+      - echo "📦 Package files:"
+      - ls -la dist/
+
+default: help
