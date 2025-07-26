@@ -6,8 +6,14 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
  "mcp>=1.7.1",
- "requests>=2.32.3",
+ "httpx>=0.25.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+ "pytest>=7.0.0",
+]
+
 [[project.authors]]
 name = "cygkichi"
 email = "9675041+cygkichi@users.noreply.github.com"
