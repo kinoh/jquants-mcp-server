@@ -4,10 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that provides access to the free J-Quants API for Japanese stock market data. The server exposes three main tools:
+This is a Model Context Protocol (MCP) server that provides access to the J-Quants API for Japanese stock market data (supports both free and paid plans). The server exposes five main tools:
 - `search_company`: Search for listed stocks by company name (Japanese text search)
 - `get_daily_quotes`: Retrieve daily stock price data for a specific stock code
 - `get_financial_statements`: Retrieve financial statements for a specific stock code
+- `get_topix_prices`: Retrieve daily TOPIX (Tokyo Stock Price Index) price data
+- `get_trades_spec`: Retrieve trading by type of investors data
 
 ## Architecture
 
@@ -100,7 +102,11 @@ The `make_requests` function implements comprehensive error handling for:
 ### API Integration
 - Base URL: `https://api.jquants.com/v1/`
 - Authentication: Bearer token in Authorization header
-- Data limitation: 2 years prior to today up until 12 weeks ago
+- Data availability varies by plan:
+  - Free plan: Past 2 years
+  - Light plan: Past 5 years
+  - Standard plan: Past 10 years  
+  - Premium plan: All available historical data
 - Response format: JSON with proper Japanese character encoding (`ensure_ascii=False`)
 
 ### Tool Parameters

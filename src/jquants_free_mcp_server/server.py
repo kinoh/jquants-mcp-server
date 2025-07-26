@@ -98,7 +98,11 @@ async def get_daily_quotes(
     ) -> str:
     """
     Retrieve daily stock price data for a specified stock code.
-    The available data spans from 2 years prior to today up until 12 weeks ago (or up to 5 years for some plans).
+    Data availability varies by plan:
+    - Free plan: Past 2 years
+    - Light plan: Past 5 years
+    - Standard plan: Past 10 years
+    - Premium plan: All available historical data
 
     Args:
         code (str): Specify the stock code. Example: "72030" (トヨタ自動車)
@@ -133,7 +137,11 @@ async def get_financial_statements(
     ) -> str:
     """
     Retrieve financial statements for a specified stock code.
-    The available data spans from 2 years prior to today up until 12 weeks ago (or up to 5 years for some plans).
+    Data availability varies by plan:
+    - Free plan: Past 2 years
+    - Light plan: Past 5 years
+    - Standard plan: Past 10 years
+    - Premium plan: All available historical data
 
     You can obtain quarterly financial summary reports and disclosure information regarding
     revisions to performance and dividend information (mainly numerical data) for listed companies.
