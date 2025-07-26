@@ -11,3 +11,4 @@ wheels/
 
 .roo
 .DS_Store
+.env
