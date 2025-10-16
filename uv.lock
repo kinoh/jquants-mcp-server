@@ -186,7 +186,7 @@ wheels = [
 ]
 
 [[package]]
-name = "jquants-free-mcp-server"
+name = "jquants-mcp-server"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [

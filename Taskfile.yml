@@ -3,7 +3,7 @@ version: '3'
 dotenv: ['.env']
 
 vars:
-  PACKAGE_NAME: jquants_free_mcp_server
+  PACKAGE_NAME: jquants_mcp_server
 
 tasks:
   install:

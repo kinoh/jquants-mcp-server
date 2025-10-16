@@ -8,7 +8,7 @@ import os
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from jquants_free_mcp_server.server import (
+from jquants_mcp_server.server import (
     search_company,
     get_daily_quotes,
     get_financial_statements,

@@ -14,8 +14,8 @@ This is a Model Context Protocol (MCP) server that provides access to the J-Quan
 ## Architecture
 
 The project follows a simple structure:
-- `src/jquants_free_mcp_server/server.py`: Main server implementation using FastMCP
-- `src/jquants_free_mcp_server/__init__.py`: Package entry point
+- `src/jquants_mcp_server/server.py`: Main server implementation using FastMCP
+- `src/jquants_mcp_server/__init__.py`: Package entry point
 - Single MCP tools are implemented as async functions decorated with `@mcp_server.tool()`
 
 ## Technology Stack
@@ -82,7 +82,7 @@ uv sync --extra dev
 JQUANTS_ID_TOKEN=your_token_here uv run python -m pytest tests/ -v
 
 # Run server
-uv run python src/jquants_free_mcp_server/server.py
+uv run python src/jquants_mcp_server/server.py
 
 # Build package
 uv build
