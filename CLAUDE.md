@@ -4,12 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Model Context Protocol (MCP) server that provides access to the J-Quants API for Japanese stock market data (supports both free and paid plans). The server exposes five main tools:
+This is a Model Context Protocol (MCP) server that provides access to the J-Quants API for Japanese stock market data (supports both free and paid plans). The server exposes 22 tools covering all major J-Quants API endpoints:
+
+### Company & Price Data
 - `search_company`: Search for listed stocks by company name (Japanese text search)
 - `get_daily_quotes`: Retrieve daily stock price data for a specific stock code
-- `get_financial_statements`: Retrieve financial statements for a specific stock code
+- `get_prices_prices_am`: Retrieve morning session prices
+
+### Market Indices
 - `get_topix_prices`: Retrieve daily TOPIX (Tokyo Stock Price Index) price data
+- `get_indices`: Retrieve index OHLC data
+
+### Financial Statements & Dividends
+- `get_financial_statements`: Retrieve financial statements for a specific stock code
+- `get_fins_announcement`: Retrieve earnings announcement schedule
+- `get_fins_dividend`: Retrieve dividend information
+- `get_fins_fs_details`: Retrieve detailed financial statements
+
+### Trading & Market Data
 - `get_trades_spec`: Retrieve trading by type of investors data
+- `get_markets_breakdown`: Retrieve trading breakdown data
+- `get_markets_daily_margin_interest`: Retrieve daily margin trading balance
+- `get_markets_weekly_margin_interest`: Retrieve weekly margin trading balance
+- `get_markets_short_selling`: Retrieve sector-wise short selling ratio
+- `get_markets_short_selling_positions`: Retrieve short selling positions report
+
+### Derivatives
+- `get_derivatives_futures`: Retrieve futures OHLC data
+- `get_derivatives_options`: Retrieve options OHLC data
+- `get_option_index_option`: Retrieve Nikkei 225 options OHLC data
 
 ## Architecture
 
@@ -23,7 +46,7 @@ The project follows a simple structure:
 - **Python**: >=3.13 required
 - **MCP Framework**: Uses FastMCP from the `mcp` library
 - **HTTP Client**: Uses `httpx` for async HTTP requests to J-Quants API
-- **Authentication**: Bearer token authentication using `JQUANTS_ID_TOKEN` environment variable
+- **Authentication**: Uses `jquantsapi` library client with either `JQUANTS_REFRESH_TOKEN` or `JQUANTS_MAIL_ADDRESS`/`JQUANTS_PASSWORD`
 - **Build System**: Uses `hatchling` as the build backend
 - **Package Manager**: Project is designed to work with `uv`
 
@@ -67,9 +90,14 @@ task help             # Show all available tasks
 ```
 
 ### Environment Setup
-1. Create a `.env` file with your J-Quants API token:
+1. Create a `.env` file with your J-Quants API credentials (choose one method):
    ```
-   JQUANTS_ID_TOKEN=your_token_here
+   # Method 1: Using refresh token (recommended)
+   JQUANTS_REFRESH_TOKEN=your_refresh_token_here
+
+   # Method 2: Using email and password
+   JQUANTS_MAIL_ADDRESS=your_email@example.com
+   JQUANTS_PASSWORD=your_password_here
    ```
 2. Run `task setup:env` to install dependencies
 
@@ -78,8 +106,8 @@ task help             # Show all available tasks
 # Install dependencies
 uv sync --extra dev
 
-# Run tests
-JQUANTS_ID_TOKEN=your_token_here uv run python -m pytest tests/ -v
+# Run tests (set authentication env vars as needed)
+uv run python -m pytest tests/ -v
 
 # Run server
 uv run python src/jquants_mcp_server/server.py
@@ -91,38 +119,36 @@ uv build
 ## Key Implementation Details
 
 ### Error Handling
-The `make_requests` function implements comprehensive error handling for:
-- Missing ID token
-- HTTP request failures
-- Non-JSON responses
-- Timeout errors
-- Connection errors
-- HTTP status errors
+The `get_client` function implements comprehensive error handling for:
+- Missing authentication credentials
+- Invalid refresh token
+- Authentication failures
 
 ### API Integration
-- Base URL: `https://api.jquants.com/v1/`
-- Authentication: Bearer token in Authorization header
+- Uses official `jquantsapi` Python library for API access
+- Authentication: Either refresh token or email/password credentials
 - Data availability varies by plan:
   - Free plan: Past 2 years
   - Light plan: Past 5 years
   - Standard plan: Past 10 years  
   - Premium plan: All available historical data
-- Response format: JSON with proper Japanese character encoding (`ensure_ascii=False`)
+- Response format: JSON converted from pandas DataFrame with proper Japanese character encoding (`ensure_ascii=False`)
 
 ### Tool Parameters
 All tools support pagination through `limit` and `start_position` parameters. The search functionality includes case-insensitive matching for both Japanese and English company names.
 
 ## Testing and Quality
 
-No test framework is currently configured in the project. Consider adding pytest for future development:
-```bash
-uv add --dev pytest
-uv run pytest
-```
+The project uses pytest for testing and ruff for code quality:
 
-No linting tools are configured. Consider adding ruff for code quality:
 ```bash
-uv add --dev ruff
-uv run ruff check
-uv run ruff format
+# Run tests
+task test              # Run with verbose output
+task test:quick        # Run with minimal output
+
+# Run linting and formatting
+task lint              # Format code with ruff
+
+# Run all checks
+task check             # Run tests + linting
 ```
