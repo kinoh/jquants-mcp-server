@@ -1,5 +1,4 @@
 import unittest
-import asyncio
 import json
 import os
 from datetime import datetime, timedelta
@@ -24,19 +23,25 @@ class TestJQuantsServer(unittest.TestCase):
     Tests normal operation cases using real API calls.
 
     Prerequisites:
-    - JQUANTS_ID_TOKEN environment variable must be set
+    - Either JQUANTS_REFRESH_TOKEN or both JQUANTS_MAIL_ADDRESS and JQUANTS_PASSWORD must be set
     """
 
     @classmethod
     def setUpClass(cls):
-        """Check if JQUANTS_ID_TOKEN is available"""
-        cls.token = os.environ.get('JQUANTS_ID_TOKEN')
-        if not cls.token:
-            raise unittest.SkipTest("JQUANTS_ID_TOKEN environment variable is required")
+        """Check if authentication credentials are available"""
+        refresh_token = os.environ.get('JQUANTS_REFRESH_TOKEN')
+        mail_address = os.environ.get('JQUANTS_MAIL_ADDRESS')
+        password = os.environ.get('JQUANTS_PASSWORD')
+
+        if not (refresh_token or (mail_address and password)):
+            raise unittest.SkipTest(
+                "Either JQUANTS_REFRESH_TOKEN or both JQUANTS_MAIL_ADDRESS "
+                "and JQUANTS_PASSWORD environment variables are required"
+            )
 
     def test_search_company_toyota(self):
         """Test company search with Toyota"""
-        result = asyncio.run(search_company("トヨタ", limit=5))
+        result = search_company("トヨタ", limit=5)
 
         # Parse JSON response
         data = json.loads(result)
@@ -60,10 +65,10 @@ class TestJQuantsServer(unittest.TestCase):
     def test_get_daily_quotes_toyota(self):
         """Test daily quotes for Toyota (7203)"""
         # Use a date range that should have data (from about 3 months ago to 2 months ago)
-        from_date = "2024-10-01"
-        to_date = "2024-10-31"
+        from_yyyymmdd = "20241001"
+        to_yyyymmdd = "20241031"
 
-        result = asyncio.run(get_daily_quotes("72030", from_date, to_date, limit=5))
+        result = get_daily_quotes("72030", from_yyyymmdd, to_yyyymmdd, limit=5)
 
         # Parse JSON response
         data = json.loads(result)
@@ -88,7 +93,7 @@ class TestJQuantsServer(unittest.TestCase):
 
     def test_get_financial_statements_toyota(self):
         """Test financial statements for Toyota (7203)"""
-        result = asyncio.run(get_financial_statements("72030", limit=3))
+        result = get_financial_statements("72030", limit=3)
 
         # Parse JSON response
         data = json.loads(result)
@@ -113,10 +118,10 @@ class TestJQuantsServer(unittest.TestCase):
     def test_get_topix_prices(self):
         """Test TOPIX prices retrieval"""
         # Use a date range that should have data
-        from_date = "2024-10-01"
-        to_date = "2024-10-31"
+        from_yyyymmdd = "20241001"
+        to_yyyymmdd = "20241031"
 
-        result = asyncio.run(get_topix_prices(from_date, to_date, limit=5))
+        result = get_topix_prices(from_yyyymmdd, to_yyyymmdd, limit=5)
 
         # Parse JSON response
         data = json.loads(result)
@@ -146,10 +151,10 @@ class TestJQuantsServer(unittest.TestCase):
     def test_get_trades_spec_by_section(self):
         """Test trading by type of investors with section parameter"""
         # Test with TSEPrime section and date range
-        from_date = "2024-10-01"
-        to_date = "2024-10-31"
+        from_yyyymmdd = "20241001"
+        to_yyyymmdd = "20241031"
 
-        result = asyncio.run(get_trades_spec(section="TSEPrime", from_date=from_date, to_date=to_date, limit=5))
+        result = get_trades_spec(section="TSEPrime", from_yyyymmdd=from_yyyymmdd, to_yyyymmdd=to_yyyymmdd, limit=5)
 
         # Parse JSON response
         data = json.loads(result)
