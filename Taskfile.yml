@@ -48,6 +48,12 @@ tasks:
       - echo "Starting J-Quants MCP server in development mode..."
       - uv run python src/{{.PACKAGE_NAME}}/server.py
 
+  inspect:
+    desc: Test MCP server with MCP Inspector
+    deps: [install]
+    cmds:
+      - npx @modelcontextprotocol/inspector uv run python src/{{.PACKAGE_NAME}}/server.py
+
   lint:
     desc: Run code formatting and linting (if tools are available)
     deps: [install]
