@@ -4,6 +4,17 @@ version = "1.0.0"
 description = "MCP server for J-Quants API - Access Japanese stock market data including prices, financial statements, and trading information"
 readme = "README.md"
 requires-python = ">=3.13"
+license = "MIT"
+keywords = ["mcp", "jquants", "stock", "market", "finance", "japan"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
  "mcp>=1.7.1",
  "jquants-api-client>=1.9.0",
@@ -17,6 +28,11 @@ dev = [
 [[project.authors]]
 name = "㐂乃"
 email = "4271312+kinoh@users.noreply.github.com"
+
+[project.urls]
+Homepage = "https://github.com/kinoh/jquants-mcp-server"
+Repository = "https://github.com/kinoh/jquants-mcp-server"
+Issues = "https://github.com/kinoh/jquants-mcp-server/issues"
 
 [build-system]
 requires = [ "hatchling",]
