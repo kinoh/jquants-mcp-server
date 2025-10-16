@@ -1,7 +1,7 @@
 [project]
 name = "jquants-mcp-server"
-version = "0.0.1"
-description = "A MCP server project"
+version = "1.0.0"
+description = "MCP server for J-Quants API - Access Japanese stock market data including prices, financial statements, and trading information"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -15,8 +15,8 @@ dev = [
 ]
 
 [[project.authors]]
-name = "cygkichi"
-email = "9675041+cygkichi@users.noreply.github.com"
+name = "㐂乃"
+email = "4271312+kinoh@users.noreply.github.com"
 
 [build-system]
 requires = [ "hatchling",]
