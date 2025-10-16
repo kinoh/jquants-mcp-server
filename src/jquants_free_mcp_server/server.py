@@ -1,56 +1,53 @@
-import asyncio
 import os
 import json
-from datetime import datetime, timedelta
-from typing import Any
-import httpx
+from datetime import datetime
+from typing import Optional
+import jquantsapi
 from mcp.server.fastmcp import FastMCP
 
 mcp_server = FastMCP("JQuants-MCP-server")
 
-async def make_requests(url: str,timeout: int = 30) -> dict[str, Any]:
-    """
-    Function to process requests
+_client: Optional[jquantsapi.Client] = None
 
-    Args:
-        url (str): URL for the request
-        timeout (int, optional): Timeout in seconds. Default is 30 seconds.
+def get_client() -> jquantsapi.Client:
+    """
+    Get or create J-Quants API client with authentication.
+
+    Authentication priority:
+    1. Use JQUANTS_REFRESH_TOKEN if available
+    2. Fall back to JQUANTS_MAIL_ADDRESS and JQUANTS_PASSWORD
 
     Returns:
-        str: API response text
+        jquantsapi.Client: Authenticated client instance
+
+    Raises:
+        ValueError: If neither refresh token nor email/password are provided
     """
-    try:
-        idToken = os.environ.get("JQUANTS_ID_TOKEN", "")
-        if not idToken:
-            return {"error": "JQUANTS_ID_TOKENが設定されていません。", "status": "id_token_error"}
+    global _client
 
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            headers = {'Authorization': 'Bearer {}'.format(idToken)}
-            response = await client.get(url, headers=headers)
-            if response.status_code != 200:
-                return {"error": f"APIリクエストに失敗しました。ステータスコード: {response.status_code}", "status": "request_error"}
-            if response.headers.get("Content-Type") != "application/json":
-                return {"error": "APIレスポンスがJSON形式ではありません。", "status": "response_format_error"}
+    if _client is not None:
+        return _client
 
-            return json.loads(response.text)
+    refresh_token = os.environ.get("JQUANTS_REFRESH_TOKEN", "")
+    mail_address = os.environ.get("JQUANTS_MAIL_ADDRESS", "")
+    password = os.environ.get("JQUANTS_PASSWORD", "")
 
-    except Exception as e:
-        if isinstance(e, httpx.TimeoutException):
-            error_msg =  f"タイムアウトエラーが発生しました。現在のタイムアウト設定: {timeout}秒"
-            return {"error": error_msg, "status": "timeout"}
-        elif isinstance(e, httpx.ConnectError):
-            error_msg = "E-Stat APIサーバーへの接続に失敗しました。ネットワーク接続を確認してください。"
-            return {"error": error_msg, "status": "connection_error"}
-        elif isinstance(e, httpx.HTTPStatusError):
-            error_msg = f"HTTPエラー（ステータスコード: {e.response.status_code}）が発生しました。"
-            return {"error": error_msg, "status": "http_error"}
-        else:
-            error_msg = f"予期せぬエラーが発生しました: {str(e)}"
-            return {"error": error_msg, "status": "unexpected_error"}
+    if refresh_token:
+        _client = jquantsapi.Client(refresh_token=refresh_token)
+    elif mail_address and password:
+        _client = jquantsapi.Client(mail_address=mail_address, password=password)
+    else:
+        raise ValueError(
+            "Authentication credentials not found. "
+            "Please set either JQUANTS_REFRESH_TOKEN or both "
+            "JQUANTS_MAIL_ADDRESS and JQUANTS_PASSWORD environment variables."
+        )
+
+    return _client
 
 
 @mcp_server.tool()
-async def search_company(
+def search_company(
         query : str,
         limit : int = 10,
         start_position : int = 0,
@@ -68,28 +65,37 @@ async def search_company(
     Returns:
         str: API response text
     """
-    url = "https://api.jquants.com/v1/listed/info"
-    response = await make_requests(url)
-    if "error" in response:
+    try:
+        client = get_client()
+        df = client.get_listed_info()
+
+        # Convert DataFrame to list of dicts
+        all_data = df.to_dict(orient='records')
+
+        # Filter by query (case-insensitive search in CompanyName and CompanyNameEnglish)
+        filtered_data = [
+            r for r in all_data
+            if (
+                query.lower() in str(r.get("CompanyName", "")).lower()
+                or
+                query.lower() in str(r.get("CompanyNameEnglish", "")).lower()
+            )
+        ]
+
+        # Apply pagination
+        paginated_data = filtered_data[start_position:start_position + limit]
+
+        response = {'info': paginated_data}
         return json.dumps(response, ensure_ascii=False)
 
-    response_json_list = response.get("info", [])
-    response_json_list = [
-        r for r in response_json_list
-        if (
-            query.lower() in r.get("CompanyName", "").lower()
-            or
-            query.lower() in r.get("CompanyNameEnglish", "").lower()
-        )
-    ][start_position:start_position + limit]
-
-    response_json = {'info': response_json_list}
-    return json.dumps(response_json, ensure_ascii=False)
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
 
 
 
 @mcp_server.tool()
-async def get_daily_quotes(
+def get_daily_quotes(
         code : str,
         from_date : str,
         to_date : str,
@@ -114,23 +120,31 @@ async def get_daily_quotes(
     Returns:
         str: API response text
     """
+    try:
+        client = get_client()
 
-    url = "https://api.jquants.com/v1/prices/daily_quotes?code={}&from={}&to={}".format(
-        code,
-        from_date,
-        to_date
-    )
-    response = await make_requests(url)
-    if "error" in response:
+        # Parse date strings to datetime objects
+        start_dt = datetime.strptime(from_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(to_date, "%Y-%m-%d")
+
+        df = client.get_prices_daily_quotes(code=code, from_date=from_date, to_date=to_date)
+
+        # Convert DataFrame to list of dicts
+        all_data = df.to_dict(orient='records')
+
+        # Apply pagination
+        paginated_data = all_data[start_position:start_position + limit]
+
+        response = {'daily_quotes': paginated_data}
         return json.dumps(response, ensure_ascii=False)
-    response_json_list = response.get("daily_quotes", [])
-    response_json_list = response_json_list[start_position:start_position + limit]
-    response_json = {'daily_quotes': response_json_list}
-    return json.dumps(response_json, ensure_ascii=False)
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
 
 
 @mcp_server.tool()
-async def get_financial_statements(
+def get_financial_statements(
         code : str,
         limit : int = 10,
         start_position : int = 0,
@@ -151,21 +165,32 @@ async def get_financial_statements(
         limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
         start_position (int, optional): The starting position for the search. Defaults to 0.
     """
-    url = "https://api.jquants.com/v1/fins/statements?code={}".format(code)
-    response = await make_requests(url)
-    if "error" in response:
+    try:
+        client = get_client()
+        df = client.get_fins_statements(code=code)
+
+        # Convert DataFrame to list of dicts
+        all_data = df.to_dict(orient='records')
+
+        # Remove empty values from each record
+        filtered_data = [
+            {k: v for k, v in r.items() if v != ""}
+            for r in all_data
+        ]
+
+        # Apply pagination
+        paginated_data = filtered_data[start_position:start_position + limit]
+
+        response = {'statements': paginated_data}
         return json.dumps(response, ensure_ascii=False)
-    response_json_list = response.get("statements", [])
-    response_json_list = [
-        {k:v for k,v in r.items() if v != ""}
-        for r in response_json_list
-    ][start_position:start_position + limit]
-    response_json = {'statements': response_json_list}
-    return json.dumps(response_json, ensure_ascii=False)
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
 
 
 @mcp_server.tool()
-async def get_topix_prices(
+def get_topix_prices(
         from_date: str,
         to_date: str,
         pagination_key: str = "",
@@ -178,30 +203,33 @@ async def get_topix_prices(
     Args:
         from_date (str): Start date in YYYY-MM-DD format. Example: "2023-01-01"
         to_date (str): End date in YYYY-MM-DD format. Example: "2023-01-31"
-        pagination_key (str, optional): Pagination key for retrieving subsequent data
+        pagination_key (str, optional): Pagination key for retrieving subsequent data (Note: not used with official library)
         limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
         start_position (int, optional): The starting position for the search. Defaults to 0.
 
     Returns:
         str: API response text containing TOPIX OHLC data
     """
+    try:
+        client = get_client()
+        df = client.get_indices_topix(from_date=from_date, to_date=to_date)
 
-    url = f"https://api.jquants.com/v1/indices/topix?from={from_date}&to={to_date}"
-    if pagination_key:
-        url += f"&pagination_key={pagination_key}"
+        # Convert DataFrame to list of dicts
+        all_data = df.to_dict(orient='records')
 
-    response = await make_requests(url)
-    if "error" in response:
+        # Apply pagination
+        paginated_data = all_data[start_position:start_position + limit]
+
+        response = {'topix': paginated_data}
         return json.dumps(response, ensure_ascii=False)
 
-    response_json_list = response.get("topix", [])
-    response_json_list = response_json_list[start_position:start_position + limit]
-    response_json = {'topix': response_json_list}
-    return json.dumps(response_json, ensure_ascii=False)
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
 
 
 @mcp_server.tool()
-async def get_trades_spec(
+def get_trades_spec(
         section: str = "",
         from_date: str = "",
         to_date: str = "",
@@ -220,37 +248,40 @@ async def get_trades_spec(
         section (str, optional): Section name. Example: "TSEPrime", "TSEStandard", "TSEGrowth"
         from_date (str, optional): Start date in YYYY-MM-DD format. Example: "2023-01-01"
         to_date (str, optional): End date in YYYY-MM-DD format. Example: "2023-01-31"
-        pagination_key (str, optional): Pagination key for retrieving subsequent data
+        pagination_key (str, optional): Pagination key for retrieving subsequent data (Note: not used with official library)
         limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
         start_position (int, optional): The starting position for the search. Defaults to 0.
 
     Returns:
-        str: API response text containing trading data by investor type including individuals, 
+        str: API response text containing trading data by investor type including individuals,
              foreigners, institutions, etc. with sales/purchase values and balances
     """
+    try:
+        client = get_client()
 
-    url = "https://api.jquants.com/v1/markets/trades_spec"
-    params = []
-    if section:
-        params.append(f"section={section}")
-    if from_date:
-        params.append(f"from={from_date}")
-    if to_date:
-        params.append(f"to={to_date}")
-    if pagination_key:
-        params.append(f"pagination_key={pagination_key}")
+        # Build kwargs for the API call
+        kwargs = {}
+        if section:
+            kwargs['section'] = section
+        if from_date:
+            kwargs['from_date'] = from_date
+        if to_date:
+            kwargs['to_date'] = to_date
 
-    if params:
-        url += "?" + "&".join(params)
+        df = client.get_markets_trades_spec(**kwargs)
 
-    response = await make_requests(url)
-    if "error" in response:
+        # Convert DataFrame to list of dicts
+        all_data = df.to_dict(orient='records')
+
+        # Apply pagination
+        paginated_data = all_data[start_position:start_position + limit]
+
+        response = {'trades_spec': paginated_data}
         return json.dumps(response, ensure_ascii=False)
 
-    response_json_list = response.get("trades_spec", [])
-    response_json_list = response_json_list[start_position:start_position + limit]
-    response_json = {'trades_spec': response_json_list}
-    return json.dumps(response_json, ensure_ascii=False)
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
 
 
 def main() -> None:
