@@ -298,66 +298,6 @@ def get_trades_spec(
         return json.dumps(error_response, ensure_ascii=False)
 
 
-# Sectors APIs
-
-@mcp_server.tool()
-def get_17_sectors(
-        limit: int = 100,
-        start_position: int = 0,
-    ) -> str:
-    """
-    Retrieve 17 sector classification data.
-
-    Args:
-        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
-        start_position (int, optional): The starting position for the search. Defaults to 0.
-
-    Returns:
-        str: API response text containing 17 sector classification data
-    """
-    try:
-        client = get_client()
-        df = client.get_17_sectors()
-
-        # Apply pagination
-        paginated_df = df.iloc[start_position:start_position + limit]
-
-        return _convert_df_to_json(paginated_df, 'sectors_17')
-
-    except Exception as e:
-        error_response = {"error": str(e), "status": "error"}
-        return json.dumps(error_response, ensure_ascii=False)
-
-
-@mcp_server.tool()
-def get_33_sectors(
-        limit: int = 100,
-        start_position: int = 0,
-    ) -> str:
-    """
-    Retrieve 33 sector classification data.
-
-    Args:
-        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
-        start_position (int, optional): The starting position for the search. Defaults to 0.
-
-    Returns:
-        str: API response text containing 33 sector classification data
-    """
-    try:
-        client = get_client()
-        df = client.get_33_sectors()
-
-        # Apply pagination
-        paginated_df = df.iloc[start_position:start_position + limit]
-
-        return _convert_df_to_json(paginated_df, 'sectors_33')
-
-    except Exception as e:
-        error_response = {"error": str(e), "status": "error"}
-        return json.dumps(error_response, ensure_ascii=False)
-
-
 # Prices APIs
 
 @mcp_server.tool()
