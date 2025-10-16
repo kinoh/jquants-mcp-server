@@ -298,6 +298,620 @@ def get_trades_spec(
         return json.dumps(error_response, ensure_ascii=False)
 
 
+# Sectors APIs
+
+@mcp_server.tool()
+def get_17_sectors(
+        limit: int = 100,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve 17 sector classification data.
+
+    Args:
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing 17 sector classification data
+    """
+    try:
+        client = get_client()
+        df = client.get_17_sectors()
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'sectors_17')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_33_sectors(
+        limit: int = 100,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve 33 sector classification data.
+
+    Args:
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing 33 sector classification data
+    """
+    try:
+        client = get_client()
+        df = client.get_33_sectors()
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'sectors_33')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+# Prices APIs
+
+@mcp_server.tool()
+def get_prices_prices_am(
+        code: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve morning session prices (午前終値).
+
+    Args:
+        code (str, optional): Stock code. If not specified, retrieves all stocks.
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing morning session price data
+    """
+    try:
+        client = get_client()
+        df = client.get_prices_prices_am(code=code)
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'prices_am')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+# Indices APIs
+
+@mcp_server.tool()
+def get_indices(
+        code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve index OHLC data (指数四本値).
+
+    Args:
+        code (str, optional): Index code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing index OHLC data
+    """
+    try:
+        client = get_client()
+        df = client.get_indices(
+            code=code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'indices')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+# Financial APIs
+
+@mcp_server.tool()
+def get_fins_announcement(
+        limit: int = 100,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve earnings announcement schedule (決算発表予定).
+
+    Args:
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing earnings announcement schedule
+    """
+    try:
+        client = get_client()
+        df = client.get_fins_announcement()
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'announcement')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_fins_dividend(
+        code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve dividend information (配当情報).
+
+    Args:
+        code (str, optional): Stock code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing dividend information
+    """
+    try:
+        client = get_client()
+        df = client.get_fins_dividend(
+            code=code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'dividend')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_fins_fs_details(
+        code: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve detailed financial statements (財務諸表詳細).
+
+    Args:
+        code (str, optional): Stock code
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing detailed financial statements
+    """
+    try:
+        client = get_client()
+        df = client.get_fins_fs_details(
+            code=code,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'fs_details')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+# Markets APIs
+
+@mcp_server.tool()
+def get_markets_breakdown(
+        code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve trading breakdown data (売買内訳).
+
+    Args:
+        code (str, optional): Stock code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing trading breakdown data
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_breakdown(
+            code=code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'breakdown')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_markets_daily_margin_interest(
+        code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve daily margin trading balance (信用取引残高（日次）).
+
+    Args:
+        code (str, optional): Stock code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing daily margin trading balance
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_daily_margin_interest(
+            code=code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'margin_interest')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_markets_weekly_margin_interest(
+        code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve weekly margin trading balance (信用取引残高（週次）).
+
+    Args:
+        code (str, optional): Stock code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing weekly margin trading balance
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_weekly_margin_interest(
+            code=code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'weekly_margin_interest')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_markets_short_selling(
+        sector_33_code: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        date_yyyymmdd: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve sector-wise short selling ratio (業種別空売り比率).
+
+    Args:
+        sector_33_code (str, optional): 33 sector code
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        date_yyyymmdd (str, optional): Specific date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing sector-wise short selling ratio
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_short_selling(
+            sector_33_code=sector_33_code,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd,
+            date_yyyymmdd=date_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'short_selling')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_markets_short_selling_positions(
+        code: str = "",
+        disclosed_date: str = "",
+        disclosed_date_from: str = "",
+        disclosed_date_to: str = "",
+        calculated_date: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve short selling positions report (空売り残高報告).
+
+    Args:
+        code (str, optional): Stock code
+        disclosed_date (str, optional): Disclosure date in YYYYMMDD format
+        disclosed_date_from (str, optional): Disclosure start date in YYYYMMDD format
+        disclosed_date_to (str, optional): Disclosure end date in YYYYMMDD format
+        calculated_date (str, optional): Calculation date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing short selling positions report
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_short_selling_positions(
+            code=code,
+            disclosed_date=disclosed_date,
+            disclosed_date_from=disclosed_date_from,
+            disclosed_date_to=disclosed_date_to,
+            calculated_date=calculated_date
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'short_selling_positions')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_markets_trading_calendar(
+        holiday_division: str = "",
+        from_yyyymmdd: str = "",
+        to_yyyymmdd: str = "",
+        limit: int = 100,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve trading calendar (取引カレンダー).
+
+    Args:
+        holiday_division (str, optional): Holiday division
+        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
+        to_yyyymmdd (str, optional): End date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing trading calendar
+    """
+    try:
+        client = get_client()
+        df = client.get_markets_trading_calendar(
+            holiday_division=holiday_division,
+            from_yyyymmdd=from_yyyymmdd,
+            to_yyyymmdd=to_yyyymmdd
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'trading_calendar')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+# Derivatives/Options APIs
+
+@mcp_server.tool()
+def get_derivatives_futures(
+        date_yyyymmdd: str,
+        category: str = "",
+        contract_flag: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve futures OHLC data (先物四本値).
+
+    Args:
+        date_yyyymmdd (str): Date in YYYYMMDD format
+        category (str, optional): Category
+        contract_flag (str, optional): Contract flag
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing futures OHLC data
+    """
+    try:
+        client = get_client()
+        df = client.get_derivatives_futures(
+            date_yyyymmdd=date_yyyymmdd,
+            category=category,
+            contract_flag=contract_flag
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'futures')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_derivatives_options(
+        date_yyyymmdd: str,
+        category: str = "",
+        contract_flag: str = "",
+        code: str = "",
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve options OHLC data (オプション四本値).
+
+    Args:
+        date_yyyymmdd (str): Date in YYYYMMDD format
+        category (str, optional): Category
+        contract_flag (str, optional): Contract flag
+        code (str, optional): Option code
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing options OHLC data
+    """
+    try:
+        client = get_client()
+        df = client.get_derivatives_options(
+            date_yyyymmdd=date_yyyymmdd,
+            category=category,
+            contract_flag=contract_flag,
+            code=code
+        )
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'options')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
+@mcp_server.tool()
+def get_option_index_option(
+        date_yyyymmdd: str,
+        limit: int = 10,
+        start_position: int = 0,
+    ) -> str:
+    """
+    Retrieve Nikkei 225 options OHLC data (日経225オプション四本値).
+
+    Args:
+        date_yyyymmdd (str): Date in YYYYMMDD format
+        limit (int, optional): Maximum number of results to retrieve. Defaults to 10.
+        start_position (int, optional): The starting position for the search. Defaults to 0.
+
+    Returns:
+        str: API response text containing Nikkei 225 options OHLC data
+    """
+    try:
+        client = get_client()
+        df = client.get_option_index_option(date_yyyymmdd=date_yyyymmdd)
+
+        # Apply pagination
+        paginated_df = df.iloc[start_position:start_position + limit]
+
+        return _convert_df_to_json(paginated_df, 'index_option')
+
+    except Exception as e:
+        error_response = {"error": str(e), "status": "error"}
+        return json.dumps(error_response, ensure_ascii=False)
+
+
 def main() -> None:
     print("Starting J-Quants MCP server!")
     mcp_server.run(transport="stdio")
