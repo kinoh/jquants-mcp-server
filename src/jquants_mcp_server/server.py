@@ -699,45 +699,6 @@ def get_markets_short_selling_positions(
         return json.dumps(error_response, ensure_ascii=False)
 
 
-@mcp_server.tool()
-def get_markets_trading_calendar(
-        holiday_division: str = "",
-        from_yyyymmdd: str = "",
-        to_yyyymmdd: str = "",
-        limit: int = 100,
-        start_position: int = 0,
-    ) -> str:
-    """
-    Retrieve trading calendar (取引カレンダー).
-
-    Args:
-        holiday_division (str, optional): Holiday division
-        from_yyyymmdd (str, optional): Start date in YYYYMMDD format
-        to_yyyymmdd (str, optional): End date in YYYYMMDD format
-        limit (int, optional): Maximum number of results to retrieve. Defaults to 100.
-        start_position (int, optional): The starting position for the search. Defaults to 0.
-
-    Returns:
-        str: API response text containing trading calendar
-    """
-    try:
-        client = get_client()
-        df = client.get_markets_trading_calendar(
-            holiday_division=holiday_division,
-            from_yyyymmdd=from_yyyymmdd,
-            to_yyyymmdd=to_yyyymmdd
-        )
-
-        # Apply pagination
-        paginated_df = df.iloc[start_position:start_position + limit]
-
-        return _convert_df_to_json(paginated_df, 'trading_calendar')
-
-    except Exception as e:
-        error_response = {"error": str(e), "status": "error"}
-        return json.dumps(error_response, ensure_ascii=False)
-
-
 # Derivatives/Options APIs
 
 @mcp_server.tool()
